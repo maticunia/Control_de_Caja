@@ -16,7 +16,7 @@ public record Monto
 
     public static implicit operator decimal(Monto monto) => monto.Valor;
 
-    public static implicit operator Monto(decimal valor) => new(valor);
+    public static implicit operator Monto(decimal valor) => Create(valor);
 
     public override string ToString() => Valor.ToString("C");
 }

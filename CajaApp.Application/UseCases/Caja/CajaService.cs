@@ -36,7 +36,7 @@ public class CajaService : ICajaService
     {
         try
         {
-            var caja = new Caja(dto.Nombre, dto.Descripcion, new Monto(dto.SaldoInicial));
+            var caja = new Caja(dto.Nombre, dto.Descripcion, Monto.Create(dto.SaldoInicial));
             var result = await _unitOfWork.Cajas.AddAsync(caja);
             
             if (!result.IsSuccess) return Result<CajaDto>.Fail(result.Error!);
@@ -100,7 +100,7 @@ public class CajaService : ICajaService
         var caja = result.Value;
         if (caja is null) return Result<CajaDto>.Fail("CAJA.NOT_FOUND", "Caja no encontrada");
         
-        var openResult = caja.Abrir(new Monto(saldoInicial));
+        var openResult = caja.Abrir(Monto.Create(saldoInicial));
         if (!openResult.IsSuccess) return Result<CajaDto>.Fail(openResult.Error!);
         
         if (saldoInicial > 0)
@@ -108,7 +108,7 @@ public class CajaService : ICajaService
             var movimientoApertura = new MovimientoCaja(
                 caja.Id,
                 TipoMovimiento.Ingreso,
-                new Monto(saldoInicial),
+                Monto.Create(saldoInicial),
                 "Apertura de caja - Saldo inicial",
                 "Apertura",
                 null,

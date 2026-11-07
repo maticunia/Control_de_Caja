@@ -51,7 +51,7 @@ public class EntityTests
     [Fact]
     public void Caja_Creation_WithValidData_Succeeds()
     {
-        var caja = new Caja("Caja Principal", "Descripción", new Monto(1000));
+        var caja = new Caja("Caja Principal", "Descripción", Monto.Create(1000));
         
         Assert.Equal("Caja Principal", caja.Nombre);
         Assert.Equal("Descripción", caja.Descripcion);
@@ -64,8 +64,8 @@ public class EntityTests
     [Fact]
     public void Caja_Abrir_WithValidSaldo_Succeeds()
     {
-        var caja = new Caja("Caja 1", "Desc", new Monto(0));
-        var result = caja.Abrir(new Monto(500));
+        var caja = new Caja("Caja 1", "Desc", Monto.Create(0));
+        var result = caja.Abrir(Monto.Create(500));
         
         Assert.True(result.IsSuccess);
         Assert.Equal(EstadoCaja.Abierta, caja.Estado);
@@ -77,10 +77,10 @@ public class EntityTests
     [Fact]
     public void Caja_Abrir_WhenAlreadyOpen_Fails()
     {
-        var caja = new Caja("Caja 1", "Desc", new Monto(0));
-        caja.Abrir(new Monto(500));
+        var caja = new Caja("Caja 1", "Desc", Monto.Create(0));
+        caja.Abrir(Monto.Create(500));
         
-        var result = caja.Abrir(new Monto(100));
+        var result = caja.Abrir(Monto.Create(100));
         
         Assert.False(result.IsSuccess);
         Assert.Equal("CAJA.YA_ABIERTA", result.Error?.Code);
@@ -89,8 +89,8 @@ public class EntityTests
     [Fact]
     public void Caja_Cerrar_WhenOpen_Succeeds()
     {
-        var caja = new Caja("Caja 1", "Desc", new Monto(0));
-        caja.Abrir(new Monto(500));
+        var caja = new Caja("Caja 1", "Desc", Monto.Create(0));
+        caja.Abrir(Monto.Create(500));
         
         var result = caja.Cerrar();
         
@@ -103,7 +103,7 @@ public class EntityTests
     [Fact]
     public void Caja_Cerrar_WhenClosed_Fails()
     {
-        var caja = new Caja("Caja 1", "Desc", new Monto(0));
+        var caja = new Caja("Caja 1", "Desc", Monto.Create(0));
         
         var result = caja.Cerrar();
         
@@ -112,26 +112,50 @@ public class EntityTests
     }
 
     [Fact]
-    public void Caja_AjustarSaldo_WhenOpen_Succeeds()
+    public void Caja_RegistrarMovimiento_Ingreso_WhenOpen_Succeeds()
     {
-        var caja = new Caja("Caja 1", "Desc", new Monto(100));
-        caja.Abrir(new Monto(100));
+        var caja = new Caja("Caja 1", "Desc", Monto.Create(100));
+        caja.Abrir(Monto.Create(100));
         
-        var result = caja.AjustarSaldo(new Monto(50));
+        var result = caja.RegistrarMovimiento(TipoMovimiento.Ingreso, Monto.Create(50));
         
         Assert.True(result.IsSuccess);
         Assert.Equal(150m, (decimal)caja.SaldoActual);
     }
 
     [Fact]
-    public void Caja_AjustarSaldo_WhenClosed_Fails()
+    public void Caja_RegistrarMovimiento_WhenClosed_Fails()
     {
-        var caja = new Caja("Caja 1", "Desc", new Monto(100));
+        var caja = new Caja("Caja 1", "Desc", Monto.Create(100));
         
-        var result = caja.AjustarSaldo(new Monto(50));
+        var result = caja.RegistrarMovimiento(TipoMovimiento.Ingreso, Monto.Create(50));
         
         Assert.False(result.IsSuccess);
         Assert.Equal("CAJA.CERRADA", result.Error?.Code);
+    }
+
+    [Fact]
+    public void Caja_RegistrarMovimiento_Egreso_WhenOpen_WithSufficientSaldo_Succeeds()
+    {
+        var caja = new Caja("Caja 1", "Desc", Monto.Create(100));
+        caja.Abrir(Monto.Create(100));
+        
+        var result = caja.RegistrarMovimiento(TipoMovimiento.Egreso, Monto.Create(50));
+        
+        Assert.True(result.IsSuccess);
+        Assert.Equal(50m, (decimal)caja.SaldoActual);
+    }
+
+    [Fact]
+    public void Caja_RegistrarMovimiento_Egreso_WhenOpen_WithInsufficientSaldo_Fails()
+    {
+        var caja = new Caja("Caja 1", "Desc", Monto.Create(50));
+        caja.Abrir(Monto.Create(50));
+        
+        var result = caja.RegistrarMovimiento(TipoMovimiento.Egreso, Monto.Create(100));
+        
+        Assert.False(result.IsSuccess);
+        Assert.Equal("CAJA.SALDO_INSUFICIENTE", result.Error?.Code);
     }
 
     [Fact]
@@ -140,7 +164,7 @@ public class EntityTests
         var movimiento = new MovimientoCaja(
             1, 
             TipoMovimiento.Ingreso, 
-            new Monto(100), 
+            Monto.Create(100), 
             "Venta", 
             "Ventas",
             1,
@@ -162,21 +186,21 @@ public class EntityTests
     public void MovimientoCaja_Creation_WithInvalidCajaId_ThrowsException()
     {
         Assert.Throws<ArgumentException>(() => 
-            new MovimientoCaja(0, TipoMovimiento.Ingreso, new Monto(100), "Test"));
+            new MovimientoCaja(0, TipoMovimiento.Ingreso, Monto.Create(100), "Test"));
     }
 
     [Fact]
     public void MovimientoCaja_Creation_WithZeroMonto_ThrowsException()
     {
         Assert.Throws<ArgumentException>(() => 
-            new MovimientoCaja(1, TipoMovimiento.Ingreso, new Monto(0), "Test"));
+            new MovimientoCaja(1, TipoMovimiento.Ingreso, Monto.Create(0), "Test"));
     }
 
     [Fact]
     public void MovimientoCaja_Creation_WithEmptyDescripcion_ThrowsException()
     {
         Assert.Throws<ArgumentException>(() => 
-            new MovimientoCaja(1, TipoMovimiento.Ingreso, new Monto(100), string.Empty));
+            new MovimientoCaja(1, TipoMovimiento.Ingreso, Monto.Create(100), string.Empty));
     }
 
     [Fact]

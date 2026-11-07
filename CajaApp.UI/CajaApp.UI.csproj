@@ -5,8 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <OutputType>Exe</OutputType>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <StartupObject>CajaApp.UI.App</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

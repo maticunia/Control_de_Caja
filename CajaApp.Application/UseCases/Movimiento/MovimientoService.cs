@@ -61,7 +61,7 @@ public class MovimientoService : IMovimientoService
             var movimiento = new MovimientoCaja(
                 dto.CajaId,
                 dto.Tipo,
-                new Monto(dto.Monto),
+                Monto.Create(dto.Monto),
                 dto.Descripcion,
                 dto.Categoria,
                 dto.ClienteId,
@@ -76,7 +76,7 @@ public class MovimientoService : IMovimientoService
             await _unitOfWork.Cajas.UpdateAsync(caja);
             await _unitOfWork.SaveChangesAsync();
 
-            return await MapToDtoAsync(result.Value);
+            return MapToDto(result.Value);
         }
         catch (Exception ex)
         {
@@ -100,7 +100,7 @@ public class MovimientoService : IMovimientoService
             if (!updateResult.IsSuccess) return Result<MovimientoCajaDto>.Fail(updateResult.Error!);
             
             await _unitOfWork.SaveChangesAsync();
-            return await MapToDtoAsync(updateResult.Value);
+            return MapToDto(updateResult.Value);
         }
         catch (Exception ex)
         {
@@ -114,12 +114,6 @@ public class MovimientoService : IMovimientoService
         if (!result.IsSuccess) return Result.Fail(result.Error!);
         
         var movimiento = result.Value;
-        if (movimiento is null) return Result.Fail("MOVIMIENTO.NOT_FOUND", "Movimiento no encontrado");
-        
-        var deleteResult = await _unitOfWork.Movimientos.GetByIdAsync(id);
-        if (!deleteResult.IsSuccess) return Result.Fail(deleteResult.Error!);
-        
-        var movimiento = deleteResult.Value;
         if (movimiento is null) return Result.Fail("MOVIMIENTO.NOT_FOUND", "Movimiento no encontrado");
         
         // Revertir el saldo
