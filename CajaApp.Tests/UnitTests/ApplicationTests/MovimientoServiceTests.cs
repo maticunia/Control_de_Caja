@@ -48,6 +48,48 @@ public class MovimientoServiceTests
     }
 
     [Fact]
+    public async Task CreateAsync_WithEgreso_DeductsSaldoAndSucceeds()
+    {
+        var caja = await _fixture.Fixture.CreateTestCajaAsync("Test Caja", 1000);
+        await _cajaService.AbrirCajaAsync(caja.Id, 1000);
+        
+        var dto = new CreateMovimientoDto(
+            caja.Id,
+            TipoMovimiento.Egreso,
+            200,
+            "Pago de proveedor");
+        
+        var result = await _movimientoService.CreateAsync(dto);
+        
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(TipoMovimiento.Egreso, result.Value.Tipo);
+        
+        // Verificar que el saldo se dedujo
+        var cajaResult = await _cajaService.GetByIdAsync(caja.Id);
+        Assert.True(cajaResult.IsSuccess);
+        Assert.Equal(800m, cajaResult.Value.SaldoActual);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithEgresoExceedingSaldo_Fails()
+    {
+        var caja = await _fixture.Fixture.CreateTestCajaAsync("Test Caja", 100);
+        await _cajaService.AbrirCajaAsync(caja.Id, 100);
+        
+        var dto = new CreateMovimientoDto(
+            caja.Id,
+            TipoMovimiento.Egreso,
+            150,
+            "Pago excesivo");
+        
+        var result = await _movimientoService.CreateAsync(dto);
+        
+        Assert.False(result.IsSuccess);
+        Assert.Equal("CAJA.SALDO_INSUFICIENTE", result.Error?.Code);
+    }
+
+    [Fact]
     public async Task CreateAsync_WithClosedCaja_Fails()
     {
         var caja = await _fixture.Fixture.CreateTestCajaAsync("Closed Caja", 1000);

@@ -13,10 +13,7 @@ public partial class MainWindow : Window
         
         Loaded += async (s, e) =>
         {
-            if (viewModel is MainViewModel mainVm)
-            {
-                await mainVm.InitializeAsync();
-            }
+            await viewModel.InitializeAsync();
         };
     }
 }

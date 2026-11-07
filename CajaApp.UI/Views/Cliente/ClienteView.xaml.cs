@@ -13,9 +13,5 @@ public partial class ClienteView : UserControl
     public ClienteView(ClienteViewModel viewModel) : this()
     {
         DataContext = viewModel;
-        Loaded += async (s, e) =>
-        {
-            await viewModel.LoadAsync();
-        };
     }
 }

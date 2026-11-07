@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CajaApp.Application.Interfaces;
-using CajaApp.UI.Views;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CajaApp.UI.ViewModels;
 
@@ -10,9 +10,10 @@ public partial class MainViewModel : BaseViewModel
     private readonly ICajaService _cajaService;
     private readonly IClienteService _clienteService;
     private readonly IMovimientoService _movimientoService;
+    private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
-    private object? _currentView;
+    private object? _currentViewModel;
 
     [ObservableProperty]
     private string _currentViewName = "Inicio";
@@ -26,18 +27,22 @@ public partial class MainViewModel : BaseViewModel
     public MainViewModel(
         ICajaService cajaService,
         IClienteService clienteService,
-        IMovimientoService movimientoService)
+        IMovimientoService movimientoService,
+        IServiceProvider serviceProvider)
     {
         _cajaService = cajaService;
         _clienteService = clienteService;
         _movimientoService = movimientoService;
+        _serviceProvider = serviceProvider;
     }
 
     [RelayCommand]
     private async Task NavigateToCajaAsync()
     {
         await CheckCajaStatusAsync();
-        CurrentView = new CajaView();
+        var vm = _serviceProvider.GetRequiredService<CajaViewModel>();
+        await vm.LoadAsync();
+        CurrentViewModel = vm;
         CurrentViewName = "Cajas";
     }
 
@@ -45,7 +50,9 @@ public partial class MainViewModel : BaseViewModel
     private async Task NavigateToClientesAsync()
     {
         await CheckCajaStatusAsync();
-        CurrentView = new ClienteView();
+        var vm = _serviceProvider.GetRequiredService<ClienteViewModel>();
+        await vm.LoadAsync();
+        CurrentViewModel = vm;
         CurrentViewName = "Clientes";
     }
 
@@ -53,14 +60,18 @@ public partial class MainViewModel : BaseViewModel
     private async Task NavigateToMovimientosAsync()
     {
         await CheckCajaStatusAsync();
-        CurrentView = new MovimientoView();
+        var vm = _serviceProvider.GetRequiredService<MovimientoViewModel>();
+        await vm.LoadAsync();
+        CurrentViewModel = vm;
         CurrentViewName = "Movimientos";
     }
 
     [RelayCommand]
     private async Task NavigateToAbrirCajaAsync()
     {
-        CurrentView = new AbrirCajaView();
+        var vm = _serviceProvider.GetRequiredService<AbrirCajaViewModel>();
+        await vm.LoadAsync();
+        CurrentViewModel = vm;
         CurrentViewName = "Abrir Caja";
     }
 
@@ -68,7 +79,7 @@ public partial class MainViewModel : BaseViewModel
     private async Task NavigateToHomeAsync()
     {
         await CheckCajaStatusAsync();
-        CurrentView = null;
+        CurrentViewModel = null;
         CurrentViewName = "Inicio";
     }
 

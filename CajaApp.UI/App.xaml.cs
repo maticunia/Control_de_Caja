@@ -55,6 +55,9 @@ public partial class App : Application
         services.AddTransient<ClienteView>();
         services.AddTransient<MovimientoView>();
         services.AddTransient<AbrirCajaView>();
+
+        // Register IServiceProvider for ViewModel navigation
+        services.AddSingleton<IServiceProvider>(sp => sp);
     }
 
     protected override async void OnStartup(StartupEventArgs e)

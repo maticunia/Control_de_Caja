@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
             entity.Property(c => c.SaldoActual).HasColumnType("decimal(18,2)");
             entity.Property(c => c.Estado).HasConversion<int>();
             entity.Property(c => c.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(c => c.Version).IsRowVersion();
         });
 
         // Configuración de Cliente
@@ -32,10 +33,11 @@ public class AppDbContext : DbContext
             entity.HasKey(c => c.Id);
             entity.Property(c => c.Nombre).IsRequired().HasMaxLength(100);
             entity.Property(c => c.Apellidos).IsRequired().HasMaxLength(100);
-            entity.Property(c => c.Email).HasMaxLength(100);
+            entity.Property(c => c.Email).HasMaxLength(100).UseCollation("NOCASE");
             entity.Property(c => c.Telefono).HasMaxLength(20);
             entity.Property(c => c.Direccion).HasMaxLength(500);
             entity.Property(c => c.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(c => c.Email).IsUnique();
         });
 
         // Configuración de MovimientoCaja
@@ -58,6 +60,10 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(m => m.ClienteId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(m => new { m.CajaId, m.Fecha });
+            entity.HasIndex(m => m.Tipo);
+            entity.HasIndex(m => m.ClienteId);
         });
 
         // Datos iniciales

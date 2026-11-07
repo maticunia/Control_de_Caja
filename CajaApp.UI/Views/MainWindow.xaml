@@ -15,16 +15,16 @@
     </Window.DataContext>
 
     <Window.Resources>
-        <DataTemplate DataType="{x:Type local:CajaView}">
+        <DataTemplate DataType="{x:Type viewModels:CajaViewModel}">
             <local:CajaView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type local:ClienteView}">
+        <DataTemplate DataType="{x:Type viewModels:ClienteViewModel}">
             <local:ClienteView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type local:MovimientoView}">
+        <DataTemplate DataType="{x:Type viewModels:MovimientoViewModel}">
             <local:MovimientoView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type local:AbrirCajaView}">
+        <DataTemplate DataType="{x:Type viewModels:AbrirCajaViewModel}">
             <local:AbrirCajaView />
         </DataTemplate>
     </Window.Resources>
@@ -34,9 +34,14 @@
             <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
         <!-- Sidebar -->
-        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" 
+        <Border Grid.Column="0" Grid.RowSpan="3" Background="{StaticResource SidebarBrush}" 
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
             <StackPanel Margin="10">
                 <!-- Logo -->
@@ -86,7 +91,7 @@
         <Grid Grid.Column="1" Margin="10">
             <!-- Header -->
             <Border Background="{StaticResource CardBrush}" CornerRadius="8" 
-                    Padding="15" Margin="0,0,0,10">
+                    Padding="15" Margin="0,0,0,10" Grid.Row="0">
                 <TextBlock Text="{Binding CurrentViewName}" FontSize="20" 
                            FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
             </Border>
@@ -94,7 +99,7 @@
             <!-- Content Area -->
             <Border Background="{StaticResource CardBrush}" CornerRadius="8" 
                     Padding="15" Grid.Row="1">
-                <ContentControl Content="{Binding CurrentView}" />
+                <ContentControl Content="{Binding CurrentViewModel}" />
             </Border>
 
             <!-- Messages -->

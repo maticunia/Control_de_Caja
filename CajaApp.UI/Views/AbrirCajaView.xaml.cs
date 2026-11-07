@@ -13,9 +13,5 @@ public partial class AbrirCajaView : UserControl
     public AbrirCajaView(AbrirCajaViewModel viewModel) : this()
     {
         DataContext = viewModel;
-        Loaded += async (s, e) =>
-        {
-            await viewModel.LoadAsync();
-        };
     }
 }

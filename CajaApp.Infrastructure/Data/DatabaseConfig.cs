@@ -10,7 +10,9 @@ public static class DatabaseConfig
         services.AddDbContext<AppDbContext>(options =>
         {
             options.UseSqlite(connectionString);
+#if DEBUG
             options.EnableSensitiveDataLogging();
+#endif
         });
 
         return services;
@@ -21,6 +23,10 @@ public static class DatabaseConfig
         using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
-        await dbContext.Database.MigrateAsync();
+        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+        if (pendingMigrations.Any())
+            await dbContext.Database.MigrateAsync();
+        else
+            await dbContext.Database.EnsureCreatedAsync();
     }
 }

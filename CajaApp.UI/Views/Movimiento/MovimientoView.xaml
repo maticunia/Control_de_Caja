@@ -28,12 +28,10 @@
                     <TextBlock Grid.Column="0" Text="Caja:" Style="{StaticResource FormLabelStyle}"
                                VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <ComboBox Grid.Column="1" ItemsSource="{Binding Cajas}" 
-                              SelectedItem="{Binding SelectedCaja}" 
+                              SelectedItem="{Binding SelectedCaja, Mode=TwoWay}" 
                               DisplayMemberPath="Nombre" 
-                              SelectedValuePath="Id"
                               Style="{StaticResource MaterialComboBoxStyle}"
-                              Margin="0,0,10,0"
-                              SelectionChanged="{Binding CajaSelectionChangedCommand}"/>
+                              Margin="0,0,10,0"/>
 
                     <TextBlock Grid.Column="2" Text="Fecha Inicio:" Style="{StaticResource FormLabelStyle}"
                                VerticalAlignment="Center" Margin="10,0,10,0"/>

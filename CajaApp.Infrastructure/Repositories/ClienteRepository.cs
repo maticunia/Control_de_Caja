@@ -42,8 +42,10 @@ public class ClienteRepository : RepositoryBase<Cliente>, IClienteRepository
     {
         try
         {
+            var normalized = email.Trim().ToLower();
             var cliente = await _dbSet
-                .FirstOrDefaultAsync(c => c.Email != null && c.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Email != null && c.Email.ToLower() == normalized);
             return Result<Cliente?>.Ok(cliente);
         }
         catch (Exception ex)

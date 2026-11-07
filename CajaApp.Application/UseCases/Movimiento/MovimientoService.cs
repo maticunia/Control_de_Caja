@@ -30,11 +30,7 @@ public class MovimientoService : IMovimientoService
         var result = await _unitOfWork.Movimientos.GetAllAsync();
         if (!result.IsSuccess) return Result<IReadOnlyList<MovimientoCajaDto>>.Fail(result.Error!);
         
-        var dtos = new List<MovimientoCajaDto>();
-        foreach (var movimiento in result.Value)
-        {
-            dtos.Add(await MapToDtoAsync(movimiento));
-        }
+        var dtos = result.Value.Select(m => MapToDto(m)).ToList();
         return Result<IReadOnlyList<MovimientoCajaDto>>.Ok(dtos);
     }
 
@@ -75,16 +71,8 @@ public class MovimientoService : IMovimientoService
             if (!result.IsSuccess) return Result<MovimientoCajaDto>.Fail(result.Error!);
 
             // Actualizar saldo de la caja
-            var montoDecimal = (decimal)movimiento.Monto;
-            if (dto.Tipo == TipoMovimiento.Ingreso)
-            {
-                caja.AjustarSaldo(new Monto(montoDecimal));
-            }
-            else
-            {
-                caja.AjustarSaldo(new Monto(-montoDecimal));
-            }
-
+            var ajusteResult = caja.RegistrarMovimiento(dto.Tipo, movimiento.Monto);
+            if (!ajusteResult.IsSuccess) return Result<MovimientoCajaDto>.Fail(ajusteResult.Error!);
             await _unitOfWork.Cajas.UpdateAsync(caja);
             await _unitOfWork.SaveChangesAsync();
 
@@ -128,9 +116,25 @@ public class MovimientoService : IMovimientoService
         var movimiento = result.Value;
         if (movimiento is null) return Result.Fail("MOVIMIENTO.NOT_FOUND", "Movimiento no encontrado");
         
-        var deleteResult = await _unitOfWork.Movimientos.DeleteAsync(id);
+        var deleteResult = await _unitOfWork.Movimientos.GetByIdAsync(id);
         if (!deleteResult.IsSuccess) return Result.Fail(deleteResult.Error!);
         
+        var movimiento = deleteResult.Value;
+        if (movimiento is null) return Result.Fail("MOVIMIENTO.NOT_FOUND", "Movimiento no encontrado");
+        
+        // Revertir el saldo
+        var cajaResult = await _unitOfWork.Cajas.GetByIdAsync(movimiento.CajaId);
+        if (!cajaResult.IsSuccess) return Result.Fail(cajaResult.Error!);
+        
+        var caja = cajaResult.Value;
+        if (caja is null) return Result.Fail("CAJA.NOT_FOUND", "Caja no encontrada");
+        
+        var tipoReverso = movimiento.Tipo == TipoMovimiento.Ingreso ? TipoMovimiento.Egreso : TipoMovimiento.Ingreso;
+        var reversoResult = caja.RegistrarMovimiento(tipoReverso, movimiento.Monto);
+        if (!reversoResult.IsSuccess) return Result.Fail(reversoResult.Error!);
+        
+        await _unitOfWork.Cajas.UpdateAsync(caja);
+        await _unitOfWork.Movimientos.DeleteAsync(id);
         await _unitOfWork.SaveChangesAsync();
         return Result.Ok();
     }
@@ -140,11 +144,7 @@ public class MovimientoService : IMovimientoService
         var result = await _unitOfWork.Movimientos.GetByCajaAsync(cajaId);
         if (!result.IsSuccess) return Result<IReadOnlyList<MovimientoCajaDto>>.Fail(result.Error!);
         
-        var dtos = new List<MovimientoCajaDto>();
-        foreach (var movimiento in result.Value)
-        {
-            dtos.Add(await MapToDtoAsync(movimiento));
-        }
+        var dtos = result.Value.Select(m => MapToDto(m)).ToList();
         return Result<IReadOnlyList<MovimientoCajaDto>>.Ok(dtos);
     }
 
@@ -153,11 +153,7 @@ public class MovimientoService : IMovimientoService
         var result = await _unitOfWork.Movimientos.GetByFechaAsync(fechaInicio, fechaFin);
         if (!result.IsSuccess) return Result<IReadOnlyList<MovimientoCajaDto>>.Fail(result.Error!);
         
-        var dtos = new List<MovimientoCajaDto>();
-        foreach (var movimiento in result.Value)
-        {
-            dtos.Add(await MapToDtoAsync(movimiento));
-        }
+        var dtos = result.Value.Select(m => MapToDto(m)).ToList();
         return Result<IReadOnlyList<MovimientoCajaDto>>.Ok(dtos);
     }
 
@@ -166,11 +162,7 @@ public class MovimientoService : IMovimientoService
         var result = await _unitOfWork.Movimientos.GetByTipoAsync(tipo);
         if (!result.IsSuccess) return Result<IReadOnlyList<MovimientoCajaDto>>.Fail(result.Error!);
         
-        var dtos = new List<MovimientoCajaDto>();
-        foreach (var movimiento in result.Value)
-        {
-            dtos.Add(await MapToDtoAsync(movimiento));
-        }
+        var dtos = result.Value.Select(m => MapToDto(m)).ToList();
         return Result<IReadOnlyList<MovimientoCajaDto>>.Ok(dtos);
     }
 
@@ -187,26 +179,14 @@ public class MovimientoService : IMovimientoService
         var result = await _unitOfWork.Movimientos.GetByClienteAsync(clienteId);
         if (!result.IsSuccess) return Result<IReadOnlyList<MovimientoCajaDto>>.Fail(result.Error!);
         
-        var dtos = new List<MovimientoCajaDto>();
-        foreach (var movimiento in result.Value)
-        {
-            dtos.Add(await MapToDtoAsync(movimiento));
-        }
+        var dtos = result.Value.Select(m => MapToDto(m)).ToList();
         return Result<IReadOnlyList<MovimientoCajaDto>>.Ok(dtos);
     }
 
-    private async Task<MovimientoCajaDto> MapToDtoAsync(MovimientoCaja movimiento)
+    private MovimientoCajaDto MapToDto(MovimientoCaja movimiento)
     {
-        var cajaResult = await _unitOfWork.Cajas.GetByIdAsync(movimiento.CajaId);
-        var cajaNombre = cajaResult.IsSuccess && cajaResult.Value is not null ? cajaResult.Value.Nombre : "Desconocida";
-        
-        string? clienteNombre = null;
-        if (movimiento.ClienteId.HasValue)
-        {
-            var clienteResult = await _unitOfWork.Clientes.GetByIdAsync(movimiento.ClienteId.Value);
-            if (clienteResult.IsSuccess && clienteResult.Value is not null)
-                clienteNombre = clienteResult.Value.NombreCompleto;
-        }
+        var cajaNombre = movimiento.Caja?.Nombre ?? "Desconocida";
+        var clienteNombre = movimiento.Cliente?.NombreCompleto;
         
         return new MovimientoCajaDto(
             movimiento.Id,

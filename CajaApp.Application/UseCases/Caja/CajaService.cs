@@ -103,6 +103,20 @@ public class CajaService : ICajaService
         var openResult = caja.Abrir(new Monto(saldoInicial));
         if (!openResult.IsSuccess) return Result<CajaDto>.Fail(openResult.Error!);
         
+        if (saldoInicial > 0)
+        {
+            var movimientoApertura = new MovimientoCaja(
+                caja.Id,
+                TipoMovimiento.Ingreso,
+                new Monto(saldoInicial),
+                "Apertura de caja - Saldo inicial",
+                "Apertura",
+                null,
+                $"APE-{caja.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}");
+
+            await _unitOfWork.Movimientos.AddAsync(movimientoApertura);
+        }
+        
         var updateResult = await _unitOfWork.Cajas.UpdateAsync(caja);
         if (!updateResult.IsSuccess) return Result<CajaDto>.Fail(updateResult.Error!);
         

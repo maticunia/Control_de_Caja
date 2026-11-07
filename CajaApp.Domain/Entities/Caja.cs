@@ -13,6 +13,7 @@ public class Caja
     public DateTime? FechaCierre { get; private set; }
     public EstadoCaja Estado { get; private set; }
     public DateTime FechaCreacion { get; private set; }
+    public byte[] Version { get; private set; } = Array.Empty<byte>();
 
     private Caja() { }
 
@@ -55,15 +56,23 @@ public class Caja
         return Result.Ok();
     }
 
-    public Result AjustarSaldo(Monto monto)
+    public Result RegistrarMovimiento(TipoMovimiento tipo, Monto monto)
     {
         if (Estado == EstadoCaja.Cerrada)
-            return Result.Fail("CAJA.CERRADA", "No se puede ajustar el saldo de una caja cerrada");
+            return Result.Fail("CAJA.CERRADA", "No se puede registrar movimientos en una caja cerrada");
 
-        if (SaldoActual.Valor + monto.Valor < 0)
-            return Result.Fail("CAJA.SALDO_NEGATIVO", "El ajuste resultaría en un saldo negativo");
+        if (tipo == TipoMovimiento.Egreso)
+        {
+            if (SaldoActual.Valor < monto.Valor)
+                return Result.Fail("CAJA.SALDO_INSUFICIENTE", "El saldo de la caja no puede quedar en negativo");
 
-        SaldoActual = new Monto(SaldoActual.Valor + monto.Valor);
+            SaldoActual = Monto.Create(SaldoActual.Valor - monto.Valor);
+        }
+        else
+        {
+            SaldoActual = Monto.Create(SaldoActual.Valor + monto.Valor);
+        }
+
         return Result.Ok();
     }
 

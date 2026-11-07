@@ -13,9 +13,5 @@ public partial class MovimientoView : UserControl
     public MovimientoView(MovimientoViewModel viewModel) : this()
     {
         DataContext = viewModel;
-        Loaded += async (s, e) =>
-        {
-            await viewModel.LoadAsync();
-        };
     }
 }
