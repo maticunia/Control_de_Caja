@@ -1,0 +1,112 @@
+<Window x:Class="CajaApp.UI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CajaApp.UI.Views"
+        xmlns:viewModels="clr-namespace:CajaApp.UI.ViewModels"
+        mc:Ignorable="d"
+        Title="Sistema de Registro de Caja" Height="700" Width="1000"
+        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
+        Background="{StaticResource BackgroundBrush}">
+    
+    <Window.DataContext>
+        <viewModels:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type local:CajaView}">
+            <local:CajaView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:ClienteView}">
+            <local:ClienteView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:MovimientoView}">
+            <local:MovimientoView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:AbrirCajaView}">
+            <local:AbrirCajaView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" 
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+            <StackPanel Margin="10">
+                <!-- Logo -->
+                <Border Background="{StaticResource PrimaryBrush}" CornerRadius="8" 
+                        Padding="10" Margin="0,0,0,20">
+                    <TextBlock Text="💰 CajaApp" FontSize="18" FontWeight="Bold" 
+                               Foreground="White" HorizontalAlignment="Center"/>
+                </Border>
+
+                <!-- Status -->
+                <Border Background="{StaticResource CardBrush}" CornerRadius="8" 
+                        Padding="10" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Estado de Caja" FontSize="12" 
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding CajaActualNombre}" FontSize="16" 
+                                   FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                        <TextBlock Text="{Binding IsCajaAbierta, Converter={StaticResource BoolToStatusConverter}}" 
+                                   FontSize="12" Foreground="{Binding IsCajaAbierta, Converter={StaticResource BoolToStatusColorConverter}}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Menu -->
+                <Button Content="🏠 Inicio" Style="{StaticResource MenuButtonStyle}"
+                        Command="{Binding NavigateToHomeCommand}" 
+                        ToolTip="Inicio"/>
+                
+                <Button Content="💼 Cajas" Style="{StaticResource MenuButtonStyle}"
+                        Command="{Binding NavigateToCajaCommand}" 
+                        ToolTip="Administrar cajas"/>
+                
+                <Button Content="👥 Clientes" Style="{StaticResource MenuButtonStyle}"
+                        Command="{Binding NavigateToClientesCommand}" 
+                        ToolTip="Administrar clientes"/>
+                
+                <Button Content="📊 Movimientos" Style="{StaticResource MenuButtonStyle}"
+                        Command="{Binding NavigateToMovimientosCommand}" 
+                        ToolTip="Registrar movimientos"/>
+                
+                <Button Content="🔓 Abrir Caja" Style="{StaticResource MenuButtonStyle}"
+                        Command="{Binding NavigateToAbrirCajaCommand}" 
+                        ToolTip="Abrir una nueva caja" Visibility="{Binding IsCajaAbierta, Converter={StaticResource BoolToInverseVisibilityConverter}}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Column="1" Margin="10">
+            <!-- Header -->
+            <Border Background="{StaticResource CardBrush}" CornerRadius="8" 
+                    Padding="15" Margin="0,0,0,10">
+                <TextBlock Text="{Binding CurrentViewName}" FontSize="20" 
+                           FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+            </Border>
+
+            <!-- Content Area -->
+            <Border Background="{StaticResource CardBrush}" CornerRadius="8" 
+                    Padding="15" Grid.Row="1">
+                <ContentControl Content="{Binding CurrentView}" />
+            </Border>
+
+            <!-- Messages -->
+            <StackPanel Grid.Row="2" Margin="0,10,0,0" 
+                        Orientation="Vertical" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" 
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}" 
+                           TextWrapping="Wrap" MaxWidth="600" Margin="0,5"/>
+                <TextBlock Text="{Binding SuccessMessage}" Foreground="Green" 
+                           Visibility="{Binding SuccessMessage, Converter={StaticResource StringToVisibilityConverter}}" 
+                           TextWrapping="Wrap" MaxWidth="600" Margin="0,5"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

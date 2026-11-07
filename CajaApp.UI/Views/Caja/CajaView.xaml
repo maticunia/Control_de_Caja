@@ -1,0 +1,174 @@
+<UserControl x:Class="CajaApp.UI.Views.Caja.CajaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:CajaApp.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModels:CajaViewModel}">
+    
+    <UserControl.DataContext>
+        <viewModels:CajaViewModel />
+    </UserControl.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0">
+            <!-- Toolbar -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
+                <Button Content="📦 Nueva Caja" Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding ShowCreateDialogCommand}" Margin="0,0,10,0"/>
+                <Button Content="📝 Editar" Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding ShowEditDialogCommand}" Margin="0,0,10,0"/>
+                <Button Content="🗑️ Eliminar" Style="{StaticResource DangerButtonStyle}"
+                        Command="{Binding ShowDeleteDialogCommand}" Margin="0,0,10,0"/>
+                <Button Content="🔓 Abrir" Style="{StaticResource SuccessButtonStyle}"
+                        Command="{Binding ShowAbrirDialogCommand}" Margin="0,0,10,0"/>
+                <Button Content="🔒 Cerrar" Style="{StaticResource WarningButtonStyle}"
+                        Command="{Binding CerrarAsyncCommand}" Margin="0,0,0,0"/>
+            </StackPanel>
+
+            <!-- Data Grid -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
+                <DataGrid ItemsSource="{Binding Cajas}" SelectedItem="{Binding SelectedCaja}"
+                          Style="{StaticResource MaterialDataGridStyle}" 
+                          CanUserSortColumns="True" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="Auto"/>
+                        <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
+                        <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*"/>
+                        <DataGridTextColumn Header="Saldo" Binding="{Binding SaldoActual, StringFormat=C}" Width="Auto">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Foreground" Value="{Binding SaldoActual, Converter={StaticResource TipoMovimientoToColorConverter}}"/>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Estado" Binding="{Binding Estado, Converter={StaticResource BoolToStatusConverter}}" Width="Auto"/>
+                        <DataGridTextColumn Header="Apertura" Binding="{Binding FechaApertura, StringFormat=g}" Width="Auto"/>
+                        <DataGridTextColumn Header="Cierre" Binding="{Binding FechaCierre, StringFormat=g}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Create Dialog -->
+            <Border Visibility="{Binding DialogoCrearVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Style="{StaticResource DialogStyle}" Background="White">
+                <StackPanel>
+                    <TextBlock Text="Crear Nueva Caja" FontSize="18" FontWeight="Bold" 
+                               Foreground="{StaticResource TextBrush}" Margin="0,0,0,10"/>
+                    
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Column="0" Grid.Row="0" Content="Nombre:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Nombre}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+
+                        <Label Grid.Column="0" Grid.Row="1" Content="Descripción:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Descripcion}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+
+                        <Label Grid.Column="0" Grid.Row="2" Content="Saldo Inicial:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding SaldoInicial}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CloseDialogsCommand}" Margin="0,0,10,0"/>
+                        <Button Content="Guardar" Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding CreateAsyncCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Edit Dialog -->
+            <Border Visibility="{Binding DialogoEditarVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Style="{StaticResource DialogStyle}" Background="White">
+                <StackPanel>
+                    <TextBlock Text="Editar Caja" FontSize="18" FontWeight="Bold" 
+                               Foreground="{StaticResource TextBrush}" Margin="0,0,0,10"/>
+                    
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Column="0" Grid.Row="0" Content="Nombre:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Nombre}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+
+                        <Label Grid.Column="0" Grid.Row="1" Content="Descripción:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Descripcion}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CloseDialogsCommand}" Margin="0,0,10,0"/>
+                        <Button Content="Guardar" Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding UpdateAsyncCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Delete Confirmation Dialog -->
+            <Border Visibility="{Binding DialogoConfirmarVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Style="{StaticResource DialogStyle}" Background="White">
+                <StackPanel>
+                    <TextBlock Text="¿Eliminar Caja?" FontSize="18" FontWeight="Bold" 
+                               Foreground="{StaticResource TextBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="Esta acción no se puede deshacer." 
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,20"/>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CloseDialogsCommand}" Margin="0,0,10,0"/>
+                        <Button Content="Eliminar" Style="{StaticResource DangerButtonStyle}"
+                                Command="{Binding DeleteAsyncCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Abrir Dialog -->
+            <Border Visibility="{Binding DialogoAbrirVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Style="{StaticResource DialogStyle}" Background="White">
+                <StackPanel>
+                    <TextBlock Text="Abrir Caja" FontSize="18" FontWeight="Bold" 
+                               Foreground="{StaticResource TextBrush}" Margin="0,0,0,10"/>
+                    
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" Content="Saldo Inicial:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Text="{Binding SaldoApertura}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CloseDialogsCommand}" Margin="0,0,10,0"/>
+                        <Button Content="Abrir" Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding AbrirAsyncCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,231 @@
+<UserControl x:Class="CajaApp.UI.Views.Movimiento.MovimientoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:CajaApp.UI.ViewModels"
+             xmlns:domain="clr-namespace:CajaApp.Domain.Enums;assembly=CajaApp.Domain"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModels:MovimientoViewModel}">
+    
+    <UserControl.DataContext>
+        <viewModels:MovimientoViewModel />
+    </UserControl.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0">
+            <!-- Filter Panel -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Caja:" Style="{StaticResource FormLabelStyle}"
+                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding Cajas}" 
+                              SelectedItem="{Binding SelectedCaja}" 
+                              DisplayMemberPath="Nombre" 
+                              SelectedValuePath="Id"
+                              Style="{StaticResource MaterialComboBoxStyle}"
+                              Margin="0,0,10,0"
+                              SelectionChanged="{Binding CajaSelectionChangedCommand}"/>
+
+                    <TextBlock Grid.Column="2" Text="Fecha Inicio:" Style="{StaticResource FormLabelStyle}"
+                               VerticalAlignment="Center" Margin="10,0,10,0"/>
+                    <DatePicker Grid.Column="3" SelectedDate="{Binding FechaInicio}"
+                                Style="{StaticResource MaterialDatePickerStyle}" Margin="0,0,10,0"/>
+                    
+                    <Button Grid.Column="4" Content="🔍 Buscar" Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding BuscarPorFechaAsyncCommand}"/>
+                </Grid>
+            </Border>
+
+            <!-- Status Panel -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10" 
+                    Visibility="{Binding SelectedCaja, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Saldo Actual:" Style="{StaticResource FormLabelStyle}" 
+                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding SaldoActual, StringFormat=C}" FontSize="20" 
+                               FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" 
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Toolbar -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
+                <Button Content="➕ Nuevo Movimiento" Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding ShowCreateDialogCommand}" Margin="0,0,10,0"/>
+                <Button Content="📝 Editar" Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding ShowEditDialogCommand}" Margin="0,0,10,0"/>
+                <Button Content="🗑️ Eliminar" Style="{StaticResource DangerButtonStyle}"
+                        Command="{Binding ShowDeleteDialogCommand}" Margin="0,0,0,0"/>
+            </StackPanel>
+
+            <!-- Data Grid -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
+                <DataGrid ItemsSource="{Binding Movimientos}" SelectedItem="{Binding SelectedMovimiento}"
+                          Style="{StaticResource MaterialDataGridStyle}" 
+                          CanUserSortColumns="True" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="Auto"/>
+                        <DataGridTextColumn Header="Caja" Binding="{Binding CajaNombre}" Width="*"/>
+                        <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="*"/>
+                        <DataGridTextColumn Header="Tipo" Binding="{Binding Tipo, Converter={StaticResource BoolToStatusConverter}}" Width="Auto">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Foreground">
+                                        <Setter.Value>
+                                            <Binding Path="Tipo" Converter="{StaticResource TipoMovimientoToColorConverter}"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Monto" Binding="{Binding Monto, StringFormat=C}" Width="Auto">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Foreground">
+                                        <Setter.Value>
+                                            <Binding Path="Tipo" Converter="{StaticResource TipoMovimientoToColorConverter}"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*"/>
+                        <DataGridTextColumn Header="Categoría" Binding="{Binding Categoria}" Width="Auto"/>
+                        <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat=g}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Create Dialog -->
+            <Border Visibility="{Binding DialogoCrearVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Style="{StaticResource DialogStyle}" Background="White">
+                <StackPanel>
+                    <TextBlock Text="Nuevo Movimiento" FontSize="18" FontWeight="Bold" 
+                               Foreground="{StaticResource TextBrush}" Margin="0,0,0,10"/>
+                    
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Column="0" Grid.Row="0" Content="Caja:" Style="{StaticResource FormLabelStyle}"/>
+                        <ComboBox Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Cajas}" 
+                                  SelectedItem="{Binding SelectedCaja}" 
+                                  DisplayMemberPath="Nombre" 
+                                  Style="{StaticResource MaterialComboBoxStyle}" Margin="0,0,0,8"/>
+
+                        <Label Grid.Column="0" Grid.Row="1" Content="Tipo:" Style="{StaticResource FormLabelStyle}"/>
+                        <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Source={x:Static domain:TipoMovimiento.Ingreso}, Mode=OneTime}" 
+                                  SelectedItem="{Binding TipoMovimiento}" 
+                                  Style="{StaticResource MaterialComboBoxStyle}" Margin="0,0,0,8">
+                            <ComboBoxItem Content="Ingreso" Tag="{x:Static domain:TipoMovimiento.Ingreso}"/>
+                            <ComboBoxItem Content="Egreso" Tag="{x:Static domain:TipoMovimiento.Egreso}"/>
+                        </ComboBox>
+
+                        <Label Grid.Column="0" Grid.Row="2" Content="Monto:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding Monto}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+
+                        <Label Grid.Column="0" Grid.Row="3" Content="Descripción:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding Descripcion}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+
+                        <Label Grid.Column="0" Grid.Row="4" Content="Categoría:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Categoria}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+
+                        <Label Grid.Column="0" Grid.Row="5" Content="Cliente:" Style="{StaticResource FormLabelStyle}"/>
+                        <ComboBox Grid.Column="1" Grid.Row="5" ItemsSource="{Binding Clientes}" 
+                                  SelectedItem="{Binding SelectedCliente}" 
+                                  DisplayMemberPath="NombreCompleto" 
+                                  Style="{StaticResource MaterialComboBoxStyle}" Margin="0,0,0,8"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CloseDialogsCommand}" Margin="0,0,10,0"/>
+                        <Button Content="Guardar" Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding CreateAsyncCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Edit Dialog -->
+            <Border Visibility="{Binding DialogoEditarVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Style="{StaticResource DialogStyle}" Background="White">
+                <StackPanel>
+                    <TextBlock Text="Editar Movimiento" FontSize="18" FontWeight="Bold" 
+                               Foreground="{StaticResource TextBrush}" Margin="0,0,0,10"/>
+                    
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Column="0" Grid.Row="0" Content="Descripción:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Descripcion}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+
+                        <Label Grid.Column="0" Grid.Row="1" Content="Categoría:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Categoria}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+
+                        <Label Grid.Column="0" Grid.Row="2" Content="Referencia:" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding Referencia}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,8"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CloseDialogsCommand}" Margin="0,0,10,0"/>
+                        <Button Content="Guardar" Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding UpdateAsyncCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Delete Confirmation Dialog -->
+            <Border Visibility="{Binding DialogoConfirmarVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Style="{StaticResource DialogStyle}" Background="White">
+                <StackPanel>
+                    <TextBlock Text="¿Eliminar Movimiento?" FontSize="18" FontWeight="Bold" 
+                               Foreground="{StaticResource TextBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="Esta acción no se puede deshacer." 
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,20"/>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CloseDialogsCommand}" Margin="0,0,10,0"/>
+                        <Button Content="Eliminar" Style="{StaticResource DangerButtonStyle}"
+                                Command="{Binding DeleteAsyncCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<application xmlns="urn:schemas-microsoft-com:asm.v3">
+  <windowsSettings>
+    <!-- The combination of below two tags have the following effect:
+         1. Per-monitor for >= Windows 10 Anniversary Update
+         2. System <-> Per-monitor for >= Windows 10 Creators Update
+         3. Per-monitor v2 for Windows 11 22H2, Windows 10 20H1 (May 2020 Update) and above
+      -->
+    <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+    <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">PerMonitorV2</dpiAwareness>
+  </windowsSettings>
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 10 -->
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+  <application>
+    <windowsSettings xmlns:ws2="http://schemas.microsoft.com/SMI/2019/WindowsSettings">
+      <ws2:perMonitorDpiScaling>true</ws2:perMonitorDpiScaling>
+    </windowsSettings>
+  </application>
+  <Identity Name="CajaApp.UI" Version="1.0.0.0" />
+</application>

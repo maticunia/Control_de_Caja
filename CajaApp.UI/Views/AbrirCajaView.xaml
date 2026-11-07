@@ -1,0 +1,53 @@
+<UserControl x:Class="CajaApp.UI.Views.AbrirCajaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:CajaApp.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModels:AbrirCajaViewModel}">
+    
+    <UserControl.DataContext>
+        <viewModels:AbrirCajaViewModel />
+    </UserControl.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0">
+            <!-- Form -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="Abrir Caja" FontSize="20" FontWeight="Bold" 
+                               Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"/>
+
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" Content="Caja:" Style="{StaticResource FormLabelStyle}"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding Cajas}" 
+                                  SelectedItem="{Binding SelectedCaja}" 
+                                  DisplayMemberPath="Nombre" 
+                                  Style="{StaticResource MaterialComboBoxStyle}" Margin="0,0,0,15"/>
+
+                        <Label Grid.Column="0" Content="Saldo Inicial:" Style="{StaticResource FormLabelStyle}" Grid.Row="1"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding SaldoInicial}" 
+                                 Style="{StaticResource MaterialTextBoxStyle}" Margin="0,0,0,15"/>
+                    </Grid>
+
+                    <Button Content="🔓 Abrir Caja" Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding AbrirCajaAsyncCommand}" 
+                            HorizontalAlignment="Right" Width="150"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Instructions -->
+            <Border Style="{StaticResource CardStyle}">
+                <TextBlock Text="Seleccione una caja cerrada y especifique el saldo inicial para abrirla." 
+                           Foreground="{StaticResource TextSecondaryBrush}" 
+                           TextWrapping="Wrap" Margin="0,0,0,0"/>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
